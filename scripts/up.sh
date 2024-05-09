@@ -49,7 +49,6 @@ cross_cluster_authentication() {
   management_cluster=$1
   workload_cluster=$2
 
-  set -x
   kubectl \
     --context "$workload_cluster" \
     create serviceaccount cd || true
@@ -96,9 +95,13 @@ spec:
 EOF
 }
 
+echo "Creating clusters..."
 for cluster in "${CLUSTERS[@]}"; do
   create_cluster "$cluster" "$KUBERNETES_VERSION"
 done
 
+echo "Cross cluster auth setup..."
 cross_cluster_authentication "${CLUSTERS[0]}" "${CLUSTERS[1]}"
+
+echo "Multi cluster scheduling..."
 multi_cluster_scheduling "${CLUSTERS[0]}" "${CLUSTERS[1]}"
