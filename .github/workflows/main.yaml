@@ -13,4 +13,4 @@ jobs:
       run: |
         apk add make
 
-    - run: ls -alh
+    - run: make up
