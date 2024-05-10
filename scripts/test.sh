@@ -11,13 +11,14 @@ kubectl \
   --context "kind-$management_cluster" \
   label ns default "multicluster-scheduler=enabled"
 
-for i in $(seq 1 2); do
+for i in $(seq 1 5); do
   cat <<EOF | kubectl --context "kind-$management_cluster" apply -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: global-$i
 spec:
+  ttlSecondsAfterFinished: 10
   template:
     metadata:
       annotations:
