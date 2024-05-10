@@ -14,3 +14,5 @@ delete_cluster() {
 for cluster in "${CLUSTERS[@]}"; do
   delete_cluster "$cluster" || true
 done
+
+docker network rm "$NETWORK_NAME" || true
