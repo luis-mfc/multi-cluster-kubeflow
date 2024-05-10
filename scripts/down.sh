@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -u
+# Exit on error
+set -eu -o pipefail
 
 source "$(dirname $0)/../.env"
 

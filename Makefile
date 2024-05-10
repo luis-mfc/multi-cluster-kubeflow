@@ -13,25 +13,8 @@ help: ## Show this help message
 up start: ## Start env
 	./scripts/up.sh
 
-# kubeflow:
-# 	kubectl config use-context aws
-# 	@if [ ! -d ".kubeflow" ]; then \
-# 		git clone -b v1.7.0 https://github.com/kubeflow/manifests.git .kubeflow ; \
-# 	fi
-
-# 	cp deployments/manifests/kubeflow/example/kustomization.yaml .kubeflow/example/kustomization.yaml
-# 	cp deployments/manifests/kubeflow/spawner_ui_config.yaml .kubeflow/apps/jupyter/jupyter-web-app/upstream/base/configs/spawner_ui_config.yaml
-# 	cp deployments/manifests/kubeflow/dashboard_config.yaml .kubeflow/apps/centraldashboard/upstream/base/configmap.yaml
-# 	cp deployments/manifests/kubeflow/dashboard_config.yaml .kubeflow/apps/centraldashboard/upstream/overlays/kserve/patches/configmap.yaml
-
-# 	cd .kubeflow && while ! kustomize build example | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done
-# 	cd ..
-# 	rm -rf .kubeflow
-
-admiralty:
-	for CLUSTER_NAME in $$CLUSTERS; do \
-		echo $$CLUSTER_NAME; \
-	done
-
 down stop: ## Stop env
 	./scripts/down.sh
+
+test: ## Test
+	./scripts/test.sh

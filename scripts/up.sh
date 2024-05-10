@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit on error
-set -eu -o pipefail
+set -eux -o pipefail
 
 source "$(dirname $0)/../.env"
 
@@ -52,8 +52,7 @@ cross_cluster_authentication() {
     create serviceaccount "$management_cluster" || true
 
   TOKEN=$(kubectl --context "kind-$workload_cluster" create token "$management_cluster")
-  IP=$(kubectl config view | yq ".clusters[] | select(.name == \"$workload_cluster\") | .cluster.server" |
-    awk -F/ '{print $3}' | awk -F: '{print $1}')
+  IP=$(kubectl --context "kind-$workload_cluster" get nodes -o wide | tail -n 1 | awk '{print $6}')
   CONFIG="$(kubectl --context "kind-$workload_cluster" config view --minify=true --raw --output json |
     jq '.users[0].user={token:"'$TOKEN'"} | .clusters[0].cluster.server="https://'$IP':6443"')"
 
