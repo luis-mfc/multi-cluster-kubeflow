@@ -11,10 +11,10 @@ help: ## Show this help message
 		awk -F ':' '{printf "%s \n %s\n\n", $$2, $$3}'
 
 up start: ## Start env
-	./scripts/up.sh
+	./scripts/admiralty/up.sh
 
 down stop: ## Stop env
-	./scripts/down.sh
+	./scripts/admiralty/down.sh
 
 test: ## Test
-	./scripts/test.sh
+	./scripts/admiralty/test.sh

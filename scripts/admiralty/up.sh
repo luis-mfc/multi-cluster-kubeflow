@@ -3,7 +3,7 @@
 # Exit on error
 set -eux -o pipefail
 
-source "$(dirname $0)/../.env"
+source "$(dirname $0)/../../.env"
 
 install_dependencies() {
   local $cluster=$1
