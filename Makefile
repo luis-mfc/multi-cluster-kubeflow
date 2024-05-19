@@ -11,6 +11,8 @@ help: ## Show this help message
 		awk -F ':' '{printf "%s \n %s\n\n", $$2, $$3}'
 		
 create: ## Create the 2 bare clusters
+	sudo sysctl fs.inotify.max_user_instances=2280
+	sudo sysctl fs.inotify.max_user_watches=1255360
 	./scripts/create.sh
 
 up start: create ## Start env
@@ -19,6 +21,17 @@ up start: create ## Start env
 
 down stop: ## Stop env
 	./scripts/down.sh
+
+kubeflow: ## Install Kubeflow
+	@if [ ! -d "kubeflow" ]; then \
+		git clone -b v1.8.1 https://github.com/kubeflow/manifests.git .kubeflow ; \
+	fi
+	cp kubeflow.yaml .kubeflow/example/kustomization.yaml
+	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
+	cd ..
+	rm -rf .kubeflow
+	sleep 5
+	kubectl port-forward --context kind-aws svc/istio-ingressgateway -n istio-system 8080:80
 
 test: ## Test
 	./scripts/$$TOOL/test.sh
