@@ -6,7 +6,7 @@ set -eux -o pipefail
 source "$(dirname $0)/../../.env"
 
 install_dependencies() {
-  local $cluster=$1
+  local cluster=$1
 
   helm repo add jetstack https://charts.jetstack.io
   helm repo update >/dev/null
@@ -27,16 +27,6 @@ install_dependencies() {
     --version 0.16.0 \
     --atomic \
     --wait
-}
-
-create_cluster() {
-  local cluster=$1
-  local kubernetes_version=$2
-
-  kind create cluster \
-    --name "$cluster" \
-    --image "kindest/node:$kubernetes_version"
-  install_dependencies "$cluster"
 }
 
 cross_cluster_authentication() {
@@ -93,8 +83,8 @@ EOF
 }
 
 echo "Creating clusters..."
-create_cluster "${CLUSTERS[0]}" "$KUBERNETES_VERSION"
-create_cluster "${CLUSTERS[1]}" "$KUBERNETES_VERSION"
+install_dependencies "${CLUSTERS[0]}"
+install_dependencies "${CLUSTERS[1]}"
 
 echo "Cross cluster auth setup..."
 cross_cluster_authentication "${CLUSTERS[0]}" "${CLUSTERS[1]}"

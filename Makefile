@@ -9,8 +9,12 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z _-]+: ?## .*$$' $(MAKEFILE_LIST) | \
 		sed 's/##//g' | \
 		awk -F ':' '{printf "%s \n %s\n\n", $$2, $$3}'
+		
+create: ## Create the 2 bare clusters
+	./scripts/create.sh
 
-up start: ## Start env
+up start: create ## Start env
+	./scripts/create.sh
 	./scripts/$$TOOL/up.sh
 
 down stop: ## Stop env
