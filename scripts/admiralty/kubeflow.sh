@@ -79,9 +79,10 @@ wait_for_namespace() {
 # Create user namespace
 wait_for_namespace "${CLUSTERS[0]}" kubeflow-user-example-com # created my kubeflow
 # TODO: potentially install via kubeflow
-kubectl create namespace \
-  --context "kind-${CLUSTERS[1]}" \
-  "kubeflow-user-example-com" || true
+wait_for_namespace "${CLUSTERS[1]}" kubeflow-user-example-com # created my kubeflow
+# kubectl create namespace \
+#   --context "kind-${CLUSTERS[1]}" \
+#   "kubeflow-user-example-com" || true
 
 kubectl --context "kind-${CLUSTERS[0]}" label ns kubeflow-user-example-com multicluster-scheduler=enabled
 cross_cluster_authentication "${CLUSTERS[0]}" "${CLUSTERS[1]}" kubeflow-user-example-com
