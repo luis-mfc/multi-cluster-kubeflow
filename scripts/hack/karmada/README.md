@@ -5,11 +5,11 @@ if ! command -v karmadactl &> /dev/null; then
   curl -s https://raw.githubusercontent.com/karmada-io/karmada/master/hack/install-cli.sh |
     sudo INSTALL_CLI_VERSION=1.11.0 bash
 fi
+export KARMADA_REPO=scripts/hack/karmada/upstream-karmada
+[[ -d "$KARMADA_REPO" ]] || git clone git@github.com:karmada-io/karmada.git -b v1.11.0 "$KARMADA_REPO"
 ```
 2. clusters
 ```shell
-git clone git@github.com:karmada-io/karmada.git -b v1.11.0 scripts/hack/karmada/upstream-karmada
-export KARMADA_REPO=scripts/hack/karmada/upstream-karmada
 $KARMADA_REPO/hack/create-cluster.sh kind-karmada $HOME/.kube/kind-karmada.config
 $KARMADA_REPO/hack/create-cluster.sh kind-aws $HOME/.kube/kind-aws.config
 $KARMADA_REPO/hack/create-cluster.sh kind-dc $HOME/.kube/kind-dc.config
@@ -81,6 +81,14 @@ spec:
           limits:
             memory: "1Gi"
 EOF
+```
+6. Destroy:
+```shell
+kind delete cluster --name kind-karmada
+kind delete cluster --name kind-aws
+kind delete cluster --name kind-dc
+rm ~/.kube/kind-*
+rm -r scripts/hack/karmada/data
 ```
 ---
 # Setup via scripts
