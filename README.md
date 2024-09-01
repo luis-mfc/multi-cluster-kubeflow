@@ -10,6 +10,8 @@ Connect them with:
 - https://admiralty.io/docs/quick_start/
 - https://github.com/armadaproject/armada
   - https://karmada.io/docs/v1.4/casestudies/ci123
+  - https://dev.to/aws-builders/multi-cluster-com-karmada-lab-session-2dgm
+  - https://medium.com/expedia-group-tech/karmada-a-multi-cloud-multi-cluster-kubernetes-orchestration-part-2-1a55f9c22cf5
 - https://www.cncf.io/blog/2021/04/12/simplifying-multi-clusters-in-kubernetes/
 - https://github.com/liqotech/liqo
 - https://github.com/berops/claudie
