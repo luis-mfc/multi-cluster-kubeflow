@@ -8,7 +8,8 @@ fi
 ```
 2. clusters
 ```shell
-KARMADA_REPO=~/downloads/karmada
+git clone git@github.com:karmada-io/karmada.git -b v1.11.0 scripts/hack/karmada/upstream-karmada
+export KARMADA_REPO=scripts/hack/karmada/upstream-karmada
 $KARMADA_REPO/hack/create-cluster.sh kind-karmada $HOME/.kube/kind-karmada.config
 $KARMADA_REPO/hack/create-cluster.sh kind-aws $HOME/.kube/kind-aws.config
 $KARMADA_REPO/hack/create-cluster.sh kind-dc $HOME/.kube/kind-dc.config
