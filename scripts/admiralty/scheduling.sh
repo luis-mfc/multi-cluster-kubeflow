@@ -29,6 +29,10 @@ cross_cluster_authentication() {
   CONFIG="$(kubectl --context "kind-$target_cluster" config view --minify=true --raw --output json |
     jq '.users[0].user={token:"'$TOKEN'"} | .clusters[0].cluster.server="https://'$IP':6443"')"
 
+  # test
+  CONFIG="$(kubectl --context "kind-$target_cluster" config view --minify=true --raw --output json |
+    jq '.clusters[0].cluster.server="https://'$IP':6443"')"
+
   echo "TOKEN=$TOKEN"
   echo "IP=$IP"
   echo "CONFIG=$CONFIG"

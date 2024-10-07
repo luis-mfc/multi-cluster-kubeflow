@@ -34,3 +34,5 @@ install_dependencies() {
 for cluster in "${CLUSTERS[@]}"; do
   install_dependencies "$cluster"
 done
+
+kubectl config use-context kind-dc
