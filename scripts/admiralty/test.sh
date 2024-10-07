@@ -77,7 +77,7 @@ wait_for_namespace "$management_cluster" "kubeflow-user-example-com"
 # kubectl \
 #   --context "kind-$management_cluster" \
 #   label ns kubeflow-user-example-com "multicluster-scheduler=enabled"
-kubectl --context kind-aws create sa -n kubeflow-user-example-com default-editor?
+kubectl --context kind-aws create sa -n kubeflow-user-example-com default-editor
 
 kubectl apply --context "kind-$management_cluster" -f - <<EOF
 apiVersion: kyverno.io/v1
