@@ -48,38 +48,37 @@ multi_cluster_scheduling() {
   # Create a Target for each workload cluster:
   cat <<EOF | kubectl --context "kind-$dc_cluster" apply -f -
 apiVersion: multicluster.admiralty.io/v1alpha1
-kind: Target
+kind: ClusterTarget
 metadata:
   name: $target_cluster
-  namespace: $namespace
 spec:
   kubeconfigSecret:
     name: $target_cluster
+    namespace: $namespace
 EOF
 
   # In the workload cluster, create a Source for the management cluster:
   cat <<EOF | kubectl --context "kind-$target_cluster" apply -f -
 apiVersion: multicluster.admiralty.io/v1alpha1
-kind: Source
+kind: ClusterSource
 metadata:
   name: $dc_cluster
-  namespace: $namespace
 spec:
-  serviceAccountName: $dc_cluster
+  serviceAccount:
+    name: $dc_cluster
+    namespace: default
 EOF
 }
 
 self_cluster_scheduling() {
   cluster=$1
-  namespace=$2
 
   # Create a Target for the self cluster:
   cat <<EOF | kubectl --context "kind-$cluster" apply -f -
 apiVersion: multicluster.admiralty.io/v1alpha1
-kind: Target
+kind: ClusterTarget
 metadata:
   name: $1
-  namespace: $namespace
 spec:
   self: true
 EOF
@@ -95,27 +94,4 @@ CLOUD_CLUSTER_NAME="${CLUSTERS[1]}"
 kubectl --context "kind-$DC_CLUSTER_NAME" label ns default multicluster-scheduler=enabled
 cross_cluster_authentication "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" default
 multi_cluster_scheduling "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" default
-self_cluster_scheduling "$DC_CLUSTER_NAME" default
-
-# echo "Kubeflow setup..."
-
-# wait_for_namespace() {
-#   cluster=$1
-#   namespace=$2
-
-#   echo "Waiting for namespace $namespace to be created in context $cluster..."
-#   while ! kubectl --context "kind-$cluster" get namespace "$namespace" >/dev/null 2>&1; do
-#     sleep 1
-#   done
-# }
-
-# for cluster in "${CLUSTERS[@]}"; do
-#   wait_for_namespace "$cluster" kubeflow-user-example-com # created my kubeflow
-# done
-
-# kubectl --context "kind-$DC_CLUSTER_NAME" label ns kubeflow-user-example-com multicluster-scheduler=enabled
-# cross_cluster_authentication "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" kubeflow-user-example-com
-# multi_cluster_scheduling "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" kubeflow-user-example-com
-# kubectl --context "kind-$DC_CLUSTER_NAME" label ns default multicluster-scheduler=enabled
-# cross_cluster_authentication "$DC_CLUSTER_NAME" "$DC_CLUSTER_NAME" default
-# multi_cluster_scheduling "$DC_CLUSTER_NAME" "$DC_CLUSTER_NAME" default
+self_cluster_scheduling "$DC_CLUSTER_NAME"

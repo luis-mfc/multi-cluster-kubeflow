@@ -36,7 +36,7 @@ kubeflow: ## Install Kubeflow
 	cd ..
 
 	rm -rf .kubeflow
-	./scripts/$$TOOL/kubeflow.sh
+	./scripts/$$TOOL/scheduling.sh
 	kubectl wait --for=condition=available --timeout=600s --context kind-aws deployment/istio-ingressgateway -n istio-system
 	kubectl port-forward --context kind-aws svc/istio-ingressgateway -n istio-system 8080:80
 

@@ -11,7 +11,7 @@ kubectl \
   --context "kind-$management_cluster" \
   label ns default "multicluster-scheduler=enabled"
 
-for i in $(seq 1 3); do
+for i in $(seq 1 10); do
   cat <<EOF | kubectl --context "kind-$management_cluster" apply -f -
 apiVersion: batch/v1
 kind: Job
@@ -23,6 +23,9 @@ spec:
     metadata:
       annotations:
         multicluster.admiralty.io/elect: ""
+        # https://github.com/admiraltyio/admiralty/issues/201#issuecomment-1861798315
+        multicluster.admiralty.io/no-reservation: ""
+        multicluster.admiralty.io/use-constraints-from-spec-for-proxy-pod-scheduling: ""
     spec:
       affinity:
         nodeAffinity:
@@ -30,17 +33,14 @@ spec:
             - weight: 1
               preference:
                 matchExpressions:
-                - key: topology.kubernetes.io/region
+                - key: multicluster.admiralty.io/cluster-target-name
                   operator: In
                   values:
                   - dc
       containers:
       - name: c
         image: busybox
-        command: ["sh", "-c", "echo Processing item $i && sleep 30"]
-        resources:
-          requests:
-            cpu: 8
+        command: ["sh", "-exc", "echo Processing item $i && sleep 5"]
       restartPolicy: Never
 EOF
 done
