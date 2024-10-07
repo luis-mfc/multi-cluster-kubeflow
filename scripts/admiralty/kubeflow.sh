@@ -5,23 +5,28 @@ set -eu -o pipefail
 
 source "$(dirname $0)/../../.env"
 
-cross_cluster_authentication() {
-  management_cluster=$1
-  workload_cluster=$2
-  namespace=$3
+label_cluster_nodes() {
+  cluster=$1
 
   kubectl label nodes \
-    --all "topology.kubernetes.io/region=$workload_cluster" \
-    --context "kind-$workload_cluster"
+    --all "topology.kubernetes.io/region=$cluster" \
+    --context "kind-$cluster" \
+    --overwrite
+}
+
+cross_cluster_authentication() {
+  dc_cluster=$1
+  target_cluster=$2
+  namespace=$3
 
   kubectl \
-    --context "kind-$workload_cluster" \
-    create serviceaccount "$management_cluster" \
+    --context "kind-$target_cluster" \
+    create serviceaccount "$dc_cluster" \
     -n "$namespace" || true
 
-  TOKEN=$(kubectl --context "kind-$workload_cluster" create token "$management_cluster" -n "$namespace")
-  IP=$(kubectl --context "kind-$workload_cluster" get nodes -o wide | tail -n 1 | awk '{print $6}')
-  CONFIG="$(kubectl --context "kind-$workload_cluster" config view --minify=true --raw --output json |
+  TOKEN=$(kubectl --context "kind-$target_cluster" create token "$dc_cluster" -n "$namespace")
+  IP=$(kubectl --context "kind-$target_cluster" get nodes -o wide | tail -n 1 | awk '{print $6}')
+  CONFIG="$(kubectl --context "kind-$target_cluster" config view --minify=true --raw --output json |
     jq '.users[0].user={token:"'$TOKEN'"} | .clusters[0].cluster.server="https://'$IP':6443"')"
 
   echo "TOKEN=$TOKEN"
@@ -29,65 +34,88 @@ cross_cluster_authentication() {
   echo "CONFIG=$CONFIG"
 
   kubectl \
-    --context "kind-$management_cluster" \
-    create secret generic "$workload_cluster" \
+    --context "kind-$dc_cluster" \
+    create secret generic "$target_cluster" \
     --from-literal=config="$CONFIG" \
     -n "$namespace" || true
 }
 
 multi_cluster_scheduling() {
-  management_cluster=$1
-  workload_cluster=$2
+  dc_cluster=$1
+  target_cluster=$2
   namespace=$3
 
   # Create a Target for each workload cluster:
-  cat <<EOF | kubectl --context "kind-$management_cluster" apply -f -
+  cat <<EOF | kubectl --context "kind-$dc_cluster" apply -f -
 apiVersion: multicluster.admiralty.io/v1alpha1
 kind: Target
 metadata:
-  name: $workload_cluster
+  name: $target_cluster
   namespace: $namespace
 spec:
   kubeconfigSecret:
-    name: $workload_cluster
+    name: $target_cluster
 EOF
 
   # In the workload cluster, create a Source for the management cluster:
-  cat <<EOF | kubectl --context "kind-$workload_cluster" apply -f -
+  cat <<EOF | kubectl --context "kind-$target_cluster" apply -f -
 apiVersion: multicluster.admiralty.io/v1alpha1
 kind: Source
 metadata:
-  name: $management_cluster
+  name: $dc_cluster
   namespace: $namespace
 spec:
-  serviceAccountName: $management_cluster
+  serviceAccountName: $dc_cluster
 EOF
 }
 
-echo "Kubeflow setup..."
-
-wait_for_namespace() {
+self_cluster_scheduling() {
   cluster=$1
   namespace=$2
 
-  echo "Waiting for namespace $namespace to be created in context $cluster..."
-  while ! kubectl --context "kind-$cluster" get namespace "$namespace" >/dev/null 2>&1; do
-    sleep 1
-  done
+  # Create a Target for the self cluster:
+  cat <<EOF | kubectl --context "kind-$cluster" apply -f -
+apiVersion: multicluster.admiralty.io/v1alpha1
+kind: Target
+metadata:
+  name: $1
+  namespace: $namespace
+spec:
+  self: true
+EOF
 }
 
-# Create user namespace
-wait_for_namespace "${CLUSTERS[0]}" kubeflow-user-example-com # created my kubeflow
-# TODO: potentially install via kubeflow
-wait_for_namespace "${CLUSTERS[1]}" kubeflow-user-example-com # created my kubeflow
-# kubectl create namespace \
-#   --context "kind-${CLUSTERS[1]}" \
-#   "kubeflow-user-example-com" || true
+for cluster in "${CLUSTERS[@]}"; do
+  label_cluster_nodes "$cluster"
+done
 
-kubectl --context "kind-${CLUSTERS[0]}" label ns kubeflow-user-example-com multicluster-scheduler=enabled
-cross_cluster_authentication "${CLUSTERS[0]}" "${CLUSTERS[1]}" kubeflow-user-example-com
-multi_cluster_scheduling "${CLUSTERS[0]}" "${CLUSTERS[1]}" kubeflow-user-example-com
+DC_CLUSTER_NAME="${CLUSTERS[0]}"
+CLOUD_CLUSTER_NAME="${CLUSTERS[1]}"
 
-kubectl --context "kind-${CLUSTERS[0]}" label ns default multicluster-scheduler=enabled
-cross_cluster_authentication "${CLUSTERS[0]}" "${CLUSTERS[1]}" default
-multi_cluster_scheduling "${CLUSTERS[0]}" "${CLUSTERS[1]}" default
+kubectl --context "kind-$DC_CLUSTER_NAME" label ns default multicluster-scheduler=enabled
+cross_cluster_authentication "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" default
+multi_cluster_scheduling "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" default
+self_cluster_scheduling "$DC_CLUSTER_NAME" default
+
+# echo "Kubeflow setup..."
+
+# wait_for_namespace() {
+#   cluster=$1
+#   namespace=$2
+
+#   echo "Waiting for namespace $namespace to be created in context $cluster..."
+#   while ! kubectl --context "kind-$cluster" get namespace "$namespace" >/dev/null 2>&1; do
+#     sleep 1
+#   done
+# }
+
+# for cluster in "${CLUSTERS[@]}"; do
+#   wait_for_namespace "$cluster" kubeflow-user-example-com # created my kubeflow
+# done
+
+# kubectl --context "kind-$DC_CLUSTER_NAME" label ns kubeflow-user-example-com multicluster-scheduler=enabled
+# cross_cluster_authentication "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" kubeflow-user-example-com
+# multi_cluster_scheduling "$DC_CLUSTER_NAME" "$CLOUD_CLUSTER_NAME" kubeflow-user-example-com
+# kubectl --context "kind-$DC_CLUSTER_NAME" label ns default multicluster-scheduler=enabled
+# cross_cluster_authentication "$DC_CLUSTER_NAME" "$DC_CLUSTER_NAME" default
+# multi_cluster_scheduling "$DC_CLUSTER_NAME" "$DC_CLUSTER_NAME" default

@@ -27,12 +27,12 @@ kubeflow: ## Install Kubeflow
 
 	# aws
 	cp kubeflow.yaml .kubeflow/example/kustomization.yaml
-	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
+	# cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
 	cd ..
 
 	# dc
 	cp kubeflow-workloads.yaml .kubeflow/example/kustomization.yaml
-	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-dc -f -; do echo "Retrying to apply resources"; sleep 10; done
+	# cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-dc -f -; do echo "Retrying to apply resources"; sleep 10; done
 	cd ..
 
 	rm -rf .kubeflow

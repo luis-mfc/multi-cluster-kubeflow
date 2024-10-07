@@ -11,7 +11,7 @@ kubectl \
   --context "kind-$management_cluster" \
   label ns default "multicluster-scheduler=enabled"
 
-for i in $(seq 1 5); do
+for i in $(seq 1 3); do
   cat <<EOF | kubectl --context "kind-$management_cluster" apply -f -
 apiVersion: batch/v1
 kind: Job
@@ -24,13 +24,23 @@ spec:
       annotations:
         multicluster.admiralty.io/elect: ""
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                - key: topology.kubernetes.io/region
+                  operator: In
+                  values:
+                  - dc
       containers:
       - name: c
         image: busybox
-        command: ["sh", "-c", "echo Processing item $i && sleep 5"]
+        command: ["sh", "-c", "echo Processing item $i && sleep 30"]
         resources:
           requests:
-            cpu: 100m
+            cpu: 8
       restartPolicy: Never
 EOF
 done
