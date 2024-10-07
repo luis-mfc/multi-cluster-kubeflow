@@ -26,6 +26,8 @@ down stop: ## Stop env
 kubeflow: ## Install Kubeflow
 	@([ ! -d "kubeflow" ] && git clone -b v1.8.1 https://github.com/kubeflow/manifests.git .kubeflow) || true
 
+	./scripts/$$TOOL/istio.sh
+
 	# dc
 	cp kubeflow.yaml .kubeflow/example/kustomization.yaml
 	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-dc -f -; do echo "Retrying to apply resources"; sleep 10; done

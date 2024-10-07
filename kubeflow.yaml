@@ -36,9 +36,9 @@ resources:
 # - ../common/cert-manager/cert-manager/base
 # - ../common/cert-manager/kubeflow-issuer/base
 # Istio
-- ../common/istio-1-17/istio-crds/base
-- ../common/istio-1-17/istio-namespace/base
-- ../common/istio-1-17/istio-install/base
+# - ../common/istio-1-17/istio-crds/base
+# - ../common/istio-1-17/istio-namespace/base
+# - ../common/istio-1-17/istio-install/base
 # OIDC Authservice
 - ../common/oidc-client/oidc-authservice/base
 # Dex
