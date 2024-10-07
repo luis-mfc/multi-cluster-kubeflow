@@ -18,6 +18,7 @@ create: ## Create the 2 bare clusters
 up start: create ## Start env
 	./scripts/create.sh
 	./scripts/$$TOOL/up.sh
+	./scripts/$$TOOL/scheduling.sh
 
 down stop: ## Stop env
 	./scripts/down.sh
@@ -25,20 +26,19 @@ down stop: ## Stop env
 kubeflow: ## Install Kubeflow
 	@([ ! -d "kubeflow" ] && git clone -b v1.8.1 https://github.com/kubeflow/manifests.git .kubeflow) || true
 
-	# aws
-	cp kubeflow.yaml .kubeflow/example/kustomization.yaml
-	# cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
-	cd ..
+	# # aws
+	# cp kubeflow.yaml .kubeflow/example/kustomization.yaml
+	# # cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
+	# cd ..
 
 	# dc
-	cp kubeflow-workloads.yaml .kubeflow/example/kustomization.yaml
-	# cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-dc -f -; do echo "Retrying to apply resources"; sleep 10; done
+	cp kubeflow.yaml .kubeflow/example/kustomization.yaml
+	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-dc -f -; do echo "Retrying to apply resources"; sleep 10; done
 	cd ..
 
 	rm -rf .kubeflow
-	./scripts/$$TOOL/scheduling.sh
-	kubectl wait --for=condition=available --timeout=600s --context kind-aws deployment/istio-ingressgateway -n istio-system
-	kubectl port-forward --context kind-aws svc/istio-ingressgateway -n istio-system 8080:80
+	kubectl wait --for=condition=available --timeout=600s --context kind-dc deployment/istio-ingressgateway -n istio-system
+	kubectl port-forward --context kind-dc svc/istio-ingressgateway -n istio-system 8080:80
 
 test: ## Test
 	./scripts/$$TOOL/test.sh

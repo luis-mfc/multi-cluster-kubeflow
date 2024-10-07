@@ -17,6 +17,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: global-$i
+  namespace: kubeflow-user-example-com
 spec:
   ttlSecondsAfterFinished: 10
   template:
