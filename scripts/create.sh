@@ -19,6 +19,7 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
   podSubnet: "${CLUSTER_POD_CIDRS[$cluster_index]}"
+  serviceSubnet: "${CLUSTER_SVC_CIDRS[$cluster_index]}"
 EOF
 
   ip="$(

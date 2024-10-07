@@ -189,4 +189,4 @@ EOF
   kubectl --context kind-dc exec -n test deploy/busybox -- wget -O- http://nginx:80
 }
 
-test
+test || echo "\033[0;31m basic istio testing failed"

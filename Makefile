@@ -38,6 +38,9 @@ kubeflow: ## Install Kubeflow
 	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
 	cd ..
 
+	# TODO: tmp workaround
+	./scripts/$$TOOL/kubeflow.sh
+
 	rm -rf .kubeflow
 	kubectl wait --for=condition=available --timeout=600s --context kind-dc deployment/istio-ingressgateway -n istio-system
 	kubectl port-forward --context kind-dc svc/istio-ingressgateway -n istio-system 8080:80
