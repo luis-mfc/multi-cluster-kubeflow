@@ -17,3 +17,5 @@ Connect them with:
 - https://github.com/berops/claudie
 - https://skypilot.readthedocs.io/en/latest/docs/index.html
 - istio/linkerd mesh ...
+- https://docs.solo.io/gloo-mesh-core/latest/about/architecture/
+- https://www.talos.dev/v1.8/talos-guides/network/kubespan/
