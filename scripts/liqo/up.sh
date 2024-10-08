@@ -3,10 +3,10 @@
 # Exit on error
 set -eux
 
-source "$(dirname $0)/../../.env"
+source "$(dirname "$0")/../../.env"
 
 install_dependencies() {
-  local $cluster=$1
+  local cluster=$1
 
   helm repo add liqo https://helm.liqo.io/ >/dev/null
   helm repo update >/dev/null

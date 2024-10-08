@@ -3,7 +3,7 @@
 # Exit on error
 set -eu -o pipefail
 
-source "$(dirname $0)/../../.env"
+source "$(dirname "$0")/../.env"
 
 label_cluster_nodes() {
   cluster=$1

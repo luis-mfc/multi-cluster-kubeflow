@@ -3,10 +3,10 @@
 # Exit on error
 set -eu -o pipefail
 
-source "$(dirname "$0")/../../.env"
+source "$(dirname "$0")/../.env"
 
 CERT_DIR=".certs"
-ISTIO_MANIFESTS_DIR="$(dirname "$0")/istio"
+MANIFESTS_DIR="$(dirname "$0")/../manifests/istio"
 
 # https://itnext.io/istio-multi-cluster-setup-b773313c074a
 
@@ -54,7 +54,7 @@ install() {
 
     export CLUSTER="$cluster"
 
-    envsubst <"$ISTIO_MANIFESTS_DIR/namespace.yaml" |
+    envsubst <"$MANIFESTS_DIR/namespace.yaml" |
       kubectl --context="kind-$cluster" apply -f -
 
     kubectl create secret generic cacerts -n istio-system \
@@ -65,17 +65,17 @@ install() {
       --dry-run=client -o yaml |
       kubectl --context="kind-$cluster" -n istio-system apply -f -
 
-    envsubst <"$ISTIO_MANIFESTS_DIR/controlplane.yaml" |
+    envsubst <"$MANIFESTS_DIR/controlplane.yaml" |
       istioctl install \
         --context="kind-$cluster" \
         -y -f -
 
-    envsubst <"$ISTIO_MANIFESTS_DIR/eastwest-gateway.yaml" |
+    envsubst <"$MANIFESTS_DIR/eastwest-gateway.yaml" |
       istioctl install \
         --context="kind-$cluster" \
         -y -f -
 
-    kubectl --context="kind-$cluster" apply -n istio-system -f "$ISTIO_MANIFESTS_DIR/expose-services.yaml"
+    kubectl --context="kind-$cluster" apply -n istio-system -f "$MANIFESTS_DIR/expose-services.yaml"
 
     ip="$(
       kubectl --context="kind-$cluster" get node "$cluster-control-plane" -o yaml |
@@ -189,4 +189,5 @@ EOF
   kubectl --context kind-dc exec -n test deploy/busybox -- wget -O- http://nginx:80
 }
 
+# shellcheck disable=SC2028
 test || echo "\033[0;31m basic istio testing failed"

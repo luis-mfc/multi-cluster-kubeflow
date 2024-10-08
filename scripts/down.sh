@@ -3,7 +3,7 @@
 # Exit on error
 set -eu -o pipefail
 
-source "$(dirname $0)/../.env"
+source "$(dirname "$0")/../.env"
 
 delete_cluster() {
   local cluster=$1

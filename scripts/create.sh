@@ -3,7 +3,7 @@
 # Exit on error
 set -eu -o pipefail
 
-source "$(dirname $0)/../.env"
+source "$(dirname "$0")/../.env"
 
 create_cluster() {
   local cluster_index=$1

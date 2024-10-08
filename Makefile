@@ -17,8 +17,8 @@ create: ## Create the 2 bare clusters
 
 up start: create ## Start env
 	./scripts/create.sh
-	./scripts/$$TOOL/up.sh
-	./scripts/$$TOOL/scheduling.sh
+	./scripts/up.sh
+	./scripts/scheduling.sh
 
 down stop: ## Stop env
 	./scripts/down.sh
@@ -26,26 +26,14 @@ down stop: ## Stop env
 kubeflow: ## Install Kubeflow
 	@([ ! -d "kubeflow" ] && git clone -b v1.8.1 https://github.com/kubeflow/manifests.git .kubeflow) || true
 
-	./scripts/$$TOOL/istio.sh
-
-	# dc
-	cp kubeflow.yaml .kubeflow/example/kustomization.yaml
-	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-dc -f -; do echo "Retrying to apply resources"; sleep 10; done
-	cd ..
-
-	# aws
-	cp kubeflow-workloads.yaml .kubeflow/example/kustomization.yaml
-	cd .kubeflow && while ! kustomize build example | kubectl apply --context kind-aws -f -; do echo "Retrying to apply resources"; sleep 10; done
-	cd ..
-
-	# TODO: tmp workaround
-	./scripts/$$TOOL/kubeflow.sh
+	./scripts/istio.sh
+	./scripts/kubeflow.sh
 
 	rm -rf .kubeflow
 	kubectl wait --for=condition=available --timeout=600s --context kind-dc deployment/istio-ingressgateway -n istio-system
 	kubectl port-forward --context kind-dc svc/istio-ingressgateway -n istio-system 8080:80
 
 test: ## Test
-	./scripts/$$TOOL/test.sh
+	./scripts/test.sh
 
 all: up kubeflow ## create env
