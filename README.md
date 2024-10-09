@@ -19,3 +19,4 @@ Connect them with:
 - istio/linkerd mesh ...
 - https://docs.solo.io/gloo-mesh-core/latest/about/architecture/
 - https://www.talos.dev/v1.8/talos-guides/network/kubespan/
+- https://github.com/siderolabs/talos-cloud-controller-manager
