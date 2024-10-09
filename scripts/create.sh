@@ -20,6 +20,9 @@ apiVersion: kind.x-k8s.io/v1alpha4
 networking:
   podSubnet: "${CLUSTER_POD_CIDRS[$cluster_index]}"
   serviceSubnet: "${CLUSTER_SVC_CIDRS[$cluster_index]}"
+nodes:
+- role: control-plane
+$(for _ in $(seq 1 $((CLUSTER_NODE_COUNTS[cluster_index] - 1))); do echo "- role: worker"; done)
 EOF
 
   ip="$(
