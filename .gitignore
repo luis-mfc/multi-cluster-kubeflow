@@ -1,7 +1,5 @@
 .vscode
+# Kubeflow manifests repo
 .kubeflow
+# Generated istio certs
 .certs
-
-scripts/hack/karmada/data
-scripts/hack/karmada/pki
-scripts/hack/karmada/upstream-karmada

@@ -1,0 +1,31 @@
+repositories:
+  - name: admiralty
+    url: public.ecr.aws/admiralty
+    oci: true
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: kyverno
+    url: https://kyverno.github.io/kyverno/
+
+releases:
+  - name: admiralty
+    needs: 
+      - cert-manager/cert-manager
+    namespace: admiralty
+    chart: admiralty/admiralty
+    disableValidation: true
+    version: 0.16.0
+
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: v1.13.1
+    disableValidation: true
+    values:
+      - installCRDs: true
+
+  - name: kyverno
+    namespace: kyverno
+    chart: kyverno/kyverno
+    installed: {{ if eq .Environment.KubeContext (requiredEnv "DC_CLUSTER_CONTEXT") }}true{{ else }}false{{ end }}
+    version: 3.2.7
