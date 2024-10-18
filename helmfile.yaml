@@ -24,8 +24,9 @@ releases:
     values:
       - installCRDs: true
 
+  {{ if eq (requiredEnv "KUBECONTEXT") (requiredEnv "DC_CLUSTER_CONTEXT") }}
   - name: kyverno
     namespace: kyverno
     chart: kyverno/kyverno
-    installed: {{ if eq .Environment.KubeContext (requiredEnv "DC_CLUSTER_CONTEXT") }}true{{ else }}false{{ end }}
     version: 3.2.7
+  {{ end }}

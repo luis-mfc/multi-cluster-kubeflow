@@ -39,8 +39,9 @@ install_dependencies() {
 
   echo "Installing dependencies on cluster $context..."
 
+
   helmfile init > /dev/null
-	helmfile apply \
+	KUBECONTEXT=$context helmfile apply \
     --kube-context "$context" \
     --wait
 }
