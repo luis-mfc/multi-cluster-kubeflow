@@ -83,10 +83,12 @@ spec:
         ports:
         - containerPort: 80
 EOF
-  kubectl --context "$DC_CLUSTER_CONTEXT" wait -n test --for=condition=ready pod -l app=busybox
-  kubectl --context "$CLOUD_CLUSTER_CONTEXT" wait -n test --for=condition=ready pod -l app=nginx
+
+  kubectl --context "$DC_CLUSTER_CONTEXT" wait -n "$namespace" --for=condition=ready pod -l app=busybox
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" wait -n "$namespace" --for=condition=ready pod -l app=nginx
+
   # shellcheck disable=SC2028
-  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n test deploy/busybox -- wget -O- "http://nginx:80"
+  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n "$namespace" deploy/busybox -- wget -O- "http://nginx:80"
 }
 
 basic_scheduling() {
@@ -227,6 +229,8 @@ spec:
             medium: Memory
           name: dshm
 EOF
+    echo "Waiting for notebook to start on cluster '$cluster' ..."
+    kubectl --context "$DC_CLUSTER_CONTEXT" wait -n "$namespace" --for=condition=ready pod -l "app=test-notebook-on-$cluster"
   done
 }
 
