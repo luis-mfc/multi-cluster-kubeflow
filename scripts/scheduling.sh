@@ -7,7 +7,7 @@
 
 set -eu -o pipefail
 
-source "$(dirname "$0")/../.env"
+source ".env"
 
 cross_cluster_authentication() {
   kubectl \

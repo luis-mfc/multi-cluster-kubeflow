@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-source "$(dirname "$0")/../.env"
+source ".env"
 
 delete_cluster() {
   local cluster=$1

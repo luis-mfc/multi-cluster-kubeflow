@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-source "$(dirname "$0")/../.env"
+source ".env"
 
 MANIFESTS_DIR="$(dirname "$0")/../manifests/kubeflow"
 

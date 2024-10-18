@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-source "$(dirname "$0")/../.env"
+source ".env"
 
 create_cluster() {
   local cluster_index=$1
@@ -10,7 +10,7 @@ create_cluster() {
 
   local -r cluster="${CLUSTERS[$cluster_index]}"
 
-  kind get clusters | grep "$cluster" > /dev/null ||
+  kind get clusters | grep "$cluster" >/dev/null ||
     kind create cluster \
       --name "$cluster" \
       --image "kindest/node:$kubernetes_version" \
@@ -28,9 +28,9 @@ EOF
   # use control plane node ip instead of default localhost so that the kubeconfig can be use by admiralty for inter
   # cluster authentication
   ip="$(
-      kubectl --context "kind-$cluster" get node "$cluster-control-plane" -o yaml |
-        yq '.status.addresses.[] | select(.type == "InternalIP") | .address'
-    )"
+    kubectl --context "kind-$cluster" get node "$cluster-control-plane" -o yaml |
+      yq '.status.addresses.[] | select(.type == "InternalIP") | .address'
+  )"
   yq -i ".clusters |= map(select(.name == \"kind-$cluster\").cluster.server = \"https://$ip:6443\")" ~/.kube/config
 }
 
@@ -39,9 +39,8 @@ install_dependencies() {
 
   echo "Installing dependencies on cluster $context..."
 
-
-  helmfile init > /dev/null
-	KUBECONTEXT=$context helmfile apply \
+  helmfile init >/dev/null
+  KUBECONTEXT=$context helmfile apply \
     --kube-context "$context" \
     --wait
 }

@@ -1,0 +1,12 @@
+repos:
+
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        description: Runs shellcheck.
+        entry: shellcheck -x
+        language: system
+        pass_filenames: true
+        files: ^.*\.sh$
+

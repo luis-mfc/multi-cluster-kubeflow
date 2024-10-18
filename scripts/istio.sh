@@ -7,7 +7,7 @@
 
 set -eu -o pipefail
 
-source "$(dirname "$0")/../.env"
+source ".env"
 
 CERT_DIR=".certs"
 MANIFESTS_DIR="$(dirname "$0")/../manifests/istio"
