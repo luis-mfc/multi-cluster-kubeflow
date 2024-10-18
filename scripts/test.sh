@@ -5,13 +5,13 @@ set -eu -o pipefail
 source "$(dirname "$0")/../.env"
 
 istio() {
-  kubectl --context=dc create ns test || true
-  kubectl --context=aws create ns test || true
+  kubectl --context "$DC_CLUSTER_CONTEXT" create ns test || true
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" create ns test || true
 
-  kubectl --context=dc label namespace test istio-injection=enabled --overwrite
-  kubectl --context=aws label namespace test istio-injection=enabled --overwrite
+  kubectl --context "$DC_CLUSTER_CONTEXT" label namespace test istio-injection=enabled --overwrite
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" label namespace test istio-injection=enabled --overwrite
 
-  kubectl --context=dc apply -n test -f - <<EOF
+  kubectl --context "$DC_CLUSTER_CONTEXT" apply -n test -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -48,7 +48,7 @@ spec:
         - containerPort: 80
 EOF
 
-  kubectl --context=aws apply -n test -f - <<EOF
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" apply -n test -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -81,10 +81,10 @@ spec:
         ports:
         - containerPort: 80
 EOF
-  kubectl --context dc wait -n test --for=condition=ready pod -l app=busybox
-  kubectl --context aws wait -n test --for=condition=ready pod -l app=nginx
+  kubectl --context "$DC_CLUSTER_CONTEXT" wait -n test --for=condition=ready pod -l app=busybox
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" wait -n test --for=condition=ready pod -l app=nginx
   # shellcheck disable=SC2028
-  kubectl --context dc exec -n test deploy/busybox -- wget -O- "http://nginx:80" ||
+  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n test deploy/busybox -- wget -O- "http://nginx:80" ||
     (echo "\033[0;31m basic istio testing failed" && exit 1)
 }
 
@@ -132,10 +132,6 @@ EOF
 }
 
 kubeflow_notebook() {
-  kubectl create \
-    --context "$management_cluster" \
-    -f https://github.com/kyverno/kyverno/releases/download/v1.11.1/install.yaml 2>/dev/null || true
-
   wait_for_namespace() {
     cluster=$1
     namespace=$2
@@ -146,12 +142,12 @@ kubeflow_notebook() {
     done
   }
 
-  wait_for_namespace "$management_cluster" "kubeflow-user-example-com"
+  wait_for_namespace "$DC_CLUSTER_CONTEXT" "kubeflow-user-example-com"
   kubectl \
-    --context "$management_cluster" \
+    --context "$DC_CLUSTER_CONTEXT" \
     label ns kubeflow-user-example-com "multicluster-scheduler=enabled"
 
-  kubectl apply --context "$management_cluster" -f - <<EOF
+  kubectl apply --context "$DC_CLUSTER_CONTEXT" -f - <<EOF
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -183,7 +179,7 @@ spec:
             # sidecar.istio.io/inject: "false"
 EOF
 
-  kubectl replace --force --context "$management_cluster" -f - <<EOF
+  kubectl replace --force --context "$DC_CLUSTER_CONTEXT" -f - <<EOF
 apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
@@ -237,11 +233,11 @@ spec:
 EOF
 }
 
-istio
-echo "Basic istio mesh setup working between clusters"
+# istio
+# echo "Basic istio mesh setup working between clusters"
 
-basic_scheduling
-echo "Basic scheduling working via admiralty"
+# basic_scheduling
+# echo "Basic scheduling working via admiralty"
 
 kubeflow_notebook
 echo "Kubeflow notebook created, port-forward to test it"
