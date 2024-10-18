@@ -203,7 +203,7 @@ spec:
                 - key: multicluster.admiralty.io/cluster-target-name
                   operator: In
                   values:
-                    - aws
+                    - $CLOUD_CLUSTER_NAME
           # preferredDuringSchedulingIgnoredDuringExecution:
           #   - weight: 1
           #     preference:
@@ -211,7 +211,7 @@ spec:
           #       - key: multicluster.admiralty.io/cluster-target-name
           #         operator: In
           #         values:
-          #           - dc
+          #           - $DC_CLUSTER_NAME
       containers:
         - name: test-notebook
           image: kubeflownotebookswg/codeserver-python:v1.8.0
@@ -233,8 +233,8 @@ spec:
 EOF
 }
 
-# istio
-# echo "Basic istio mesh setup working between clusters"
+istio
+echo "Basic istio mesh setup working between clusters"
 
 # basic_scheduling
 # echo "Basic scheduling working via admiralty"
