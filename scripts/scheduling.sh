@@ -21,9 +21,8 @@ cross_cluster_authentication() {
     -n "$namespace" || true
 
   TOKEN=$(kubectl --context "$target_cluster" create token "$cluster" -n "$namespace")
-  IP=$(kubectl --context "$target_cluster" get nodes -o wide | tail -n 1 | awk '{print $6}')
   CONFIG="$(kubectl --context "$target_cluster" config view --minify=true --raw --output json |
-    jq '.users[0].user={token:"'"$TOKEN"'"} | .clusters[0].cluster.server="https://'"$IP"':6443"')"
+    jq '.users[0].user={token:"'"$TOKEN"'"}')"
 
   kubectl \
     --context "$target_cluster" \
