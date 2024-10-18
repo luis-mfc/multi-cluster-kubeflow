@@ -27,7 +27,7 @@ cross_cluster_authentication() {
 }
 
 multi_cluster_scheduling() {
-  cat <<EOF | kubectl --context "$DC_CLUSTER_CONTEXT" apply -f -
+  kubectl --context "$DC_CLUSTER_CONTEXT" apply -f - <<EOF
 apiVersion: multicluster.admiralty.io/v1alpha1
 kind: ClusterTarget
 metadata:
@@ -38,7 +38,7 @@ spec:
     namespace: admiralty
 EOF
 
-  cat <<EOF | kubectl --context "$CLOUD_CLUSTER_CONTEXT" apply -f -
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" apply -f - <<EOF
 apiVersion: multicluster.admiralty.io/v1alpha1
 kind: ClusterSource
 metadata:
@@ -51,7 +51,7 @@ EOF
 }
 
 self_cluster_scheduling() {
-  cat <<EOF | kubectl --context "$DC_CLUSTER_CONTEXT" apply -f -
+  kubectl --context "$DC_CLUSTER_CONTEXT" apply -f - <<EOF
 apiVersion: multicluster.admiralty.io/v1alpha1
 kind: ClusterTarget
 metadata:

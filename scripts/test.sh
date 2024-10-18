@@ -5,13 +5,15 @@ set -eu -o pipefail
 source "$(dirname "$0")/../.env"
 
 istio() {
-  kubectl --context "$DC_CLUSTER_CONTEXT" create ns test || true
-  kubectl --context "$CLOUD_CLUSTER_CONTEXT" create ns test || true
+  local -r namespace=istio-test
 
-  kubectl --context "$DC_CLUSTER_CONTEXT" label namespace test istio-injection=enabled --overwrite
-  kubectl --context "$CLOUD_CLUSTER_CONTEXT" label namespace test istio-injection=enabled --overwrite
+  kubectl --context "$DC_CLUSTER_CONTEXT" create ns "$namespace" || true
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" create ns "$namespace" || true
 
-  kubectl --context "$DC_CLUSTER_CONTEXT" apply -n test -f - <<EOF
+  kubectl --context "$DC_CLUSTER_CONTEXT" label ns "$namespace" istio-injection=enabled --overwrite
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" label ns "$namespace" istio-injection=enabled --overwrite
+
+  kubectl --context "$DC_CLUSTER_CONTEXT" apply -n "$namespace" -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -84,24 +86,26 @@ EOF
   kubectl --context "$DC_CLUSTER_CONTEXT" wait -n test --for=condition=ready pod -l app=busybox
   kubectl --context "$CLOUD_CLUSTER_CONTEXT" wait -n test --for=condition=ready pod -l app=nginx
   # shellcheck disable=SC2028
-  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n test deploy/busybox -- wget -O- "http://nginx:80" ||
-    (echo "\033[0;31m basic istio testing failed" && exit 1)
+  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n test deploy/busybox -- wget -O- "http://nginx:80"
 }
 
 basic_scheduling() {
-  management_cluster="${CLUSTERS[0]}"
+  local -r namespace=admiralty-test
+
+  kubectl --context "$DC_CLUSTER_CONTEXT" create ns "$namespace" || true
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" create ns "$namespace" || true
 
   kubectl \
-    --context "$management_cluster" \
-    label ns default "multicluster-scheduler=enabled"
+    --context "$DC_CLUSTER_CONTEXT" \
+    label ns $namespace "multicluster-scheduler=enabled"
 
-  for i in $(seq 1 0); do
-    cat <<EOF | kubectl --context "$management_cluster" apply -f -
+  for cluster in "${CLUSTERS[@]}"; do
+    kubectl --context "$DC_CLUSTER_CONTEXT" apply -f - <<EOF
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: global-$i
-  namespace: default
+  name: test-job-$cluster
+  namespace: $namespace
 spec:
   ttlSecondsAfterFinished: 10
   template:
@@ -114,39 +118,39 @@ spec:
     spec:
       affinity:
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              preference:
-                matchExpressions:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
                 - key: multicluster.admiralty.io/cluster-target-name
                   operator: In
                   values:
-                  - dc
+                    - $cluster
       containers:
       - name: c
         image: busybox
-        command: ["sh", "-exc", "echo Processing item $i && sleep 5"]
+        command: ["sh", "-exc", "echo test job on cluster $cluster && sleep 5"]
       restartPolicy: Never
 EOF
+    kubectl wait --context "$DC_CLUSTER_CONTEXT" "job/test-job-$cluster" \
+      --namespace "$namespace" \
+      --for=condition=complete \
+      --timeout=60s
   done
 }
 
 kubeflow_notebook() {
-  wait_for_namespace() {
-    cluster=$1
-    namespace=$2
+  local -r namespace=kubeflow-user-example-com
 
-    echo "Waiting for namespace $namespace to be created in context $cluster..."
-    while ! kubectl --context "$cluster" get namespace "$namespace" >/dev/null 2>&1; do
-      sleep 1
-    done
-  }
+  echo "Waiting for namespace $namespace to be created in context $cluster..."
+  while ! kubectl --context "$DC_CLUSTER_CONTEXT" get namespace "$namespace" >/dev/null 2>&1; do
+    sleep 1
+  done
 
-  wait_for_namespace "$DC_CLUSTER_CONTEXT" "kubeflow-user-example-com"
   kubectl \
     --context "$DC_CLUSTER_CONTEXT" \
-    label ns kubeflow-user-example-com "multicluster-scheduler=enabled"
+    label ns $namespace "multicluster-scheduler=enabled"
 
+  # add admiralty annotations to the notebook pods
   kubectl apply --context "$DC_CLUSTER_CONTEXT" -f - <<EOF
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
@@ -168,7 +172,7 @@ spec:
           kinds:
             - Pod
           namespaces:
-            - kubeflow-user-example-com
+            - $namespace
     mutate:
       patchStrategicMerge:
         metadata:
@@ -176,10 +180,10 @@ spec:
             multicluster.admiralty.io/elect: ""
             multicluster.admiralty.io/no-reservation: ""
             multicluster.admiralty.io/use-constraints-from-spec-for-proxy-pod-scheduling: ""
-            # sidecar.istio.io/inject: "false"
 EOF
 
-  kubectl replace --force --context "$DC_CLUSTER_CONTEXT" -f - <<EOF
+  for cluster in "${CLUSTERS[@]}"; do
+    kubectl --context "$DC_CLUSTER_CONTEXT" apply -f - <<EOF
 apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
@@ -188,10 +192,10 @@ metadata:
     notebooks.kubeflow.org/http-rewrite-uri: /
     notebooks.kubeflow.org/server-type: group-one
   labels:
-    app: test-notebook
+    app: test-notebook-on-$cluster
     admiralty: 'true'
-  name: test-notebook
-  namespace: kubeflow-user-example-com
+  name: test-notebook-on-$cluster
+  namespace: $namespace
 spec:
   template:
     spec:
@@ -203,17 +207,9 @@ spec:
                 - key: multicluster.admiralty.io/cluster-target-name
                   operator: In
                   values:
-                    - $CLOUD_CLUSTER_NAME
-          # preferredDuringSchedulingIgnoredDuringExecution:
-          #   - weight: 1
-          #     preference:
-          #       matchExpressions:
-          #       - key: multicluster.admiralty.io/cluster-target-name
-          #         operator: In
-          #         values:
-          #           - $DC_CLUSTER_NAME
+                    - $cluster
       containers:
-        - name: test-notebook
+        - name: test-notebook-on-$cluster
           image: kubeflownotebookswg/codeserver-python:v1.8.0
           resources:
             limits:
@@ -231,13 +227,14 @@ spec:
             medium: Memory
           name: dshm
 EOF
+  done
 }
 
 istio
 echo "Basic istio mesh setup working between clusters"
 
-# basic_scheduling
-# echo "Basic scheduling working via admiralty"
+basic_scheduling
+echo "Basic scheduling working via admiralty"
 
 kubeflow_notebook
 echo "Kubeflow notebook created, port-forward to test it"
