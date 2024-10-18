@@ -9,4 +9,3 @@ repos:
         language: system
         pass_filenames: true
         files: ^.*\.sh$
-
