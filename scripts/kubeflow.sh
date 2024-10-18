@@ -6,7 +6,6 @@ source ".env"
 
 MANIFESTS_DIR="$(dirname "$0")/../manifests/kubeflow"
 
-# TODO: tmp workaround for istio setup
 remove_kubeflow_health_checks() {
   cluster=$1
 
@@ -19,17 +18,28 @@ remove_kubeflow_health_checks() {
   done
 }
 
+install_kubeflow() {
+  context=$1
+  kustomization_file=$2
+
+  cp "$kustomization_file" .kubeflow/example/kustomization.yaml
+  cd .kubeflow && while ! kustomize build example | kubectl apply --context "$context" -f -; do
+    echo "Retrying to apply resources"
+    sleep 10
+  done
+  cd ..
+
+  # TODO: tmp workaround for istio setup
+  while ! remove_kubeflow_health_checks "$context"; do
+    echo "Retrying to apply health check hack"
+    sleep 1
+  done
+
+}
+
 ([ ! -d "kubeflow" ] && git clone -b "$KUBEFLOW_VERSION" https://github.com/kubeflow/manifests.git .kubeflow) || true
 
-cp "$MANIFESTS_DIR/kubeflow.yaml" .kubeflow/example/kustomization.yaml
-cd .kubeflow && while ! kustomize build example | kubectl apply --context "$DC_CLUSTER_CONTEXT" -f -; do echo "Retrying to apply resources"; sleep 10; done
-cd ..
-while ! remove_kubeflow_health_checks "$DC_CLUSTER_CONTEXT"; do echo "Retrying to apply health check hack"; sleep 1; done
-
-
-cp "$MANIFESTS_DIR/kubeflow-cloud.yaml" .kubeflow/example/kustomization.yaml
-cd .kubeflow && while ! kustomize build example | kubectl apply --context "$CLOUD_CLUSTER_CONTEXT" -f -; do echo "Retrying to apply resources"; sleep 10; done
-cd ..
-while ! remove_kubeflow_health_checks "$CLOUD_CLUSTER_CONTEXT"; do echo "Retrying to apply health check hack"; sleep 1; done
+install_kubeflow "$DC_CLUSTER_CONTEXT" "$MANIFESTS_DIR/kubeflow.yaml"
+install_kubeflow "$CLOUD_CLUSTER_CONTEXT" "$MANIFESTS_DIR/kubeflow-cloud.yaml"
 
 rm -rf .kubeflow
