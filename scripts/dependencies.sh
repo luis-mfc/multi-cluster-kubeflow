@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Check if dependencies used in the scripts are available
+#
 
 set -eu -o pipefail
 

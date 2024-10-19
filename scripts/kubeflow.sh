@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Install kubeflow based using the upstream documentation:
+#   - https://github.com/kubeflow/manifests/tree/v1.8.1?tab=readme-ov-file#install-with-a-single-command
+#
 
 set -eu -o pipefail
 
@@ -7,7 +11,7 @@ source ".env"
 MANIFESTS_DIR="$(dirname "$0")/../manifests/kubeflow"
 
 remove_kubeflow_health_checks() {
-  cluster=$1
+  local -r cluster=$1
 
   IFS=' ' read -ra deployments <<<"$(kubectl --context "$cluster" get deployments -n kubeflow -o jsonpath='{.items[*].metadata.name}')"
   for deployment in "${deployments[@]}"; do
@@ -19,8 +23,8 @@ remove_kubeflow_health_checks() {
 }
 
 install_kubeflow() {
-  context=$1
-  kustomization_file=$2
+  local -r context=$1
+  local -r kustomization_file=$2
 
   cp "$kustomization_file" .kubeflow/example/kustomization.yaml
   cd .kubeflow && while ! kustomize build example | kubectl apply --context "$context" -f -; do

@@ -13,8 +13,7 @@ CERT_DIR=".certs"
 MANIFESTS_DIR="$(dirname "$0")/../manifests/istio"
 
 prepare_certs() {
-
-  echo "Clean up contents of dir './chapter12/certs'"
+  echo "Clean up contents of dir '$CERT_DIR'"
   rm -rf "${CERT_DIR}"
 
   echo "Generating new certificates"
