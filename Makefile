@@ -19,6 +19,7 @@ dependencies: ## Start env
 up start: dependencies ## Start env
 	./scripts/up.sh
 	./scripts/scheduling.sh
+	k config use-context $$DC_CLUSTER_CONTEXT
 
 down stop: ## Stop env
 	./scripts/down.sh

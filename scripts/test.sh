@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Basic testing:
+#  - check that the istio mesh works: ensure a service in cluster A can accessed from a pods on cluster B
+#  - check that admiralty scheduling works: create one to run in each cluster (but submitted in a single one)
+#  - check that kubeflow notebooks work: creating 1 in each cluster (but submitted in a single one)
+#
 
 set -eu -o pipefail
 
@@ -50,7 +56,7 @@ spec:
         - containerPort: 80
 EOF
 
-  kubectl --context "$CLOUD_CLUSTER_CONTEXT" apply -n test -f - <<EOF
+  kubectl --context "$CLOUD_CLUSTER_CONTEXT" apply -n "$namespace" -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -91,7 +97,7 @@ EOF
   kubectl --context "$DC_CLUSTER_CONTEXT" exec -n "$namespace" deploy/busybox -- wget -O- "http://nginx:80"
 }
 
-basic_scheduling() {
+admiralty() {
   local -r namespace=admiralty-test
 
   kubectl --context "$DC_CLUSTER_CONTEXT" create ns "$namespace" || true
@@ -234,11 +240,14 @@ EOF
   done
 }
 
+echo -e "\033[34mTesting the istio mesh ...\033[0m"
 istio
-echo "Basic istio mesh setup working between clusters"
 
-basic_scheduling
-echo "Basic scheduling working via admiralty"
+echo
+echo -e "\033[34mTesting multi cluster scheduling via admiralty ...\033[0m"
+admiralty
+echo
 
+echo
+echo -e "\033[34mTesting multi cluster Kubeflow notebooks ...\033[0m"
 kubeflow_notebook
-echo "Kubeflow notebook created, port-forward to test it"
