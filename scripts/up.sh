@@ -1,12 +1,15 @@
 #!/bin/bash
+#
+# Create the kind clusters and install basic dependencies
+#
 
 set -eu -o pipefail
 
 source ".env"
 
 create_cluster() {
-  local cluster_index=$1
-  local kubernetes_version=$2
+  local -r cluster_index=$1
+  local -r kubernetes_version=$2
 
   local -r cluster="${CLUSTERS[$cluster_index]}"
 
@@ -35,7 +38,7 @@ EOF
 }
 
 install_dependencies() {
-  local context=$1
+  local -r context=$1
 
   echo "Installing dependencies on cluster $context..."
 
