@@ -90,11 +90,21 @@ spec:
         - containerPort: 80
 EOF
 
-  kubectl --context "$DC_CLUSTER_CONTEXT" wait -n "$namespace" --for=condition=ready pod -l app=busybox
-  kubectl --context "$CLOUD_CLUSTER_CONTEXT" wait -n "$namespace" --for=condition=ready pod -l app=nginx
+  kubectl wait pod -l app=busybox \
+    --context "$DC_CLUSTER_CONTEXT" \
+    -n "$namespace" \
+    --for=condition=ready \
+    --timeout=60s
+  kubectl wait pod -l app=nginx \
+    --context "$CLOUD_CLUSTER_CONTEXT" \
+    -n "$namespace" \
+    --for=condition=ready \
+    --timeout=60s
 
   # shellcheck disable=SC2028
-  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n "$namespace" deploy/busybox -- wget -O- "http://nginx:80"
+  while timeout -k 60 60 -- wget -O- "http://nginx:80"; [ $? = 124 ] ; do sleep 2  ; done
+  kubectl --context "$DC_CLUSTER_CONTEXT" exec -n "$namespace" deploy/busybox -- \
+    timeout 60 sh -c 'until wget -O- "http://nginx:80"; do echo Request failed ; sleep 5; done'
 }
 
 admiralty() {
@@ -139,7 +149,8 @@ spec:
         command: ["sh", "-exc", "echo test job on cluster $cluster && sleep 5"]
       restartPolicy: Never
 EOF
-    kubectl wait --context "$DC_CLUSTER_CONTEXT" "job/test-job-$cluster" \
+    kubectl wait "job/test-job-$cluster" \
+      --context "$DC_CLUSTER_CONTEXT" \
       --namespace "$namespace" \
       --for=condition=complete \
       --timeout=60s
@@ -149,7 +160,7 @@ EOF
 kubeflow_notebook() {
   local -r namespace=kubeflow-user-example-com
 
-  echo "Waiting for namespace $namespace to be created in context $cluster..."
+  echo "Waiting for namespace $namespace to be created in context $DC_CLUSTER_NAME..."
   while ! kubectl --context "$DC_CLUSTER_CONTEXT" get namespace "$namespace" >/dev/null 2>&1; do
     sleep 1
   done
@@ -236,7 +247,12 @@ spec:
           name: dshm
 EOF
     echo "Waiting for notebook to start on cluster '$cluster' ..."
-    kubectl --context "$DC_CLUSTER_CONTEXT" wait -n "$namespace" --for=condition=ready pod -l "app=test-notebook-on-$cluster"
+    sleep 5 # pod may take a bit to get created
+    kubectl wait pod -l "statefulset=test-notebook-on-$cluster" \
+      --context "$DC_CLUSTER_CONTEXT" \
+      -n "$namespace" \
+      --for=condition=ready \
+      --timeout=60s
   done
 }
 
