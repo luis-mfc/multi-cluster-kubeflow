@@ -1,12 +1,14 @@
 #!/bin/bash
+#
+# Destroy the kind clusters
+#
 
-# Exit on error
 set -eu -o pipefail
 
-source "$(dirname $0)/../.env"
+source ".env"
 
 delete_cluster() {
-  local cluster=$1
+  local -r cluster=$1
 
   kind delete cluster --name "$cluster"
 }
