@@ -86,7 +86,7 @@ install() {
 
       if [ "$other_cluster" != "${cluster}" ]; then
         istioctl \
-          --context "$other_context" x create-remote-secret \
+          --context "$other_context" create-remote-secret \
           --name="cluster-$other_cluster" |
           kubectl \
             --context "${context}" apply -f -

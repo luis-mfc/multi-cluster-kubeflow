@@ -44,44 +44,6 @@ install_kubeflow() {
 ([ ! -d "kubeflow" ] && git clone -b "$KUBEFLOW_VERSION" https://github.com/kubeflow/manifests.git .kubeflow) || true
 
 install_kubeflow "$DC_CLUSTER_CONTEXT" "$MANIFESTS_DIR/kubeflow.yaml"
-# kubectl --context "$DC_CLUSTER_CONTEXT" apply -f - <<EOF
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: istio
-#   namespace: istio-system
-# data:
-#   mesh: |-
-#     accessLogFile: /dev/stdout
-#     defaultConfig:
-#       discoveryAddress: istiod.istio-system.svc:15012
-#       proxyMetadata: {}
-#       tracing: {}
-#     enablePrometheusMerge: true
-#     rootNamespace: istio-system
-#     tcpKeepalive:
-#       interval: 5s
-#       probes: 3
-#       time: 10s
-#     trustDomain: cluster.local
-#     extensionProviders:
-#     - envoyExtAuthzHttp:
-#         headersToDownstreamOnDeny:
-#         - content-type
-#         - set-cookie
-#         headersToUpstreamOnAllow:
-#         - authorization
-#         - path
-#         - x-auth-request-email
-#         - x-auth-request-groups
-#         - x-auth-request-user
-#         includeRequestHeadersInCheck:
-#         - authorization
-#         - cookie
-#         service: oauth2-proxy.oauth2-proxy.svc.cluster.local
-#         port: 80
-#       name: oauth2-proxy
-# EOF
 install_kubeflow "$CLOUD_CLUSTER_CONTEXT" "$MANIFESTS_DIR/kubeflow-cloud.yaml"
 
 rm -rf .kubeflow

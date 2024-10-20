@@ -3,7 +3,8 @@
 <!-- TODO: -->
 
 ## Dependencies/Versions
-- `istio`/`istioctl`: 1.17
+- `istio`/`istioctl`: 1.19.10
+- `kubeflow`: 1.9.0
 <!-- TODO: -->
 
 ## Setup

@@ -102,7 +102,6 @@ EOF
     --timeout=60s
 
   # shellcheck disable=SC2028
-  while timeout -k 60 60 -- wget -O- "http://nginx:80"; [ $? = 124 ] ; do sleep 2  ; done
   kubectl --context "$DC_CLUSTER_CONTEXT" exec -n "$namespace" deploy/busybox -- \
     timeout 60 sh -c 'until wget -O- "http://nginx:80"; do echo Request failed ; sleep 5; done'
 }
