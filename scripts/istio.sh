@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Istio multi-cluster setup based on:
-#   - https://itnext.io/istio-multi-cluster-setup-b773313c074a, https://github.com/mlkmhd/istio-multi-cluster-initializer
+#   - https://github.com/mlkmhd/istio-multi-cluster-initializer
 #   - https://istio.io/latest/docs/setup/install/multicluster/
 #
 
