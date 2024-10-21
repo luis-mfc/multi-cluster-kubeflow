@@ -21,11 +21,10 @@ up start: dependencies ## Start env
 	./scripts/scheduling.sh
 	kubectl config use-context $$DC_CLUSTER_CONTEXT
 
-down stop: ## Stop env
-	./scripts/down.sh
+istio: ## Install istio
+	./scripts/istio.sh
 
 kubeflow: ## Install Kubeflow
-	./scripts/istio.sh
 	./scripts/kubeflow.sh
 
 	kubectl wait deployment/istio-ingressgateway \
@@ -40,4 +39,7 @@ kubeflow: ## Install Kubeflow
 test: ## Test
 	./scripts/test.sh
 
-all: up kubeflow ## create kubeflow environment
+down stop: ## Stop env
+	./scripts/down.sh
+
+all: up istio kubeflow ## create kubeflow environment

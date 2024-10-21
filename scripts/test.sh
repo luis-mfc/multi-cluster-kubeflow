@@ -159,47 +159,6 @@ EOF
 kubeflow_notebook() {
   local -r namespace=kubeflow-user-example-com
 
-  echo "Waiting for namespace $namespace to be created in context $DC_CLUSTER_NAME..."
-  while ! kubectl --context "$DC_CLUSTER_CONTEXT" get namespace "$namespace" >/dev/null 2>&1; do
-    sleep 1
-  done
-
-  kubectl \
-    --context "$DC_CLUSTER_CONTEXT" \
-    label ns $namespace "multicluster-scheduler=enabled"
-
-  # add admiralty annotations to the notebook pods
-  kubectl apply --context "$DC_CLUSTER_CONTEXT" -f - <<EOF
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: add-annotation-to-pods
-  annotations:
-    policies.kyverno.io/title: Add Annotation to Pods
-    policies.kyverno.io/category: Pod Management
-    policies.kyverno.io/severity: low
-    policies.kyverno.io/subject: Pod
-    policies.kyverno.io/description: >-
-      Adds a custom annotation to all pods in the specified namespace.
-spec:
-  rules:
-  - name: add-annotation
-    match:
-      any:
-      - resources:
-          kinds:
-            - Pod
-          namespaces:
-            - $namespace
-    mutate:
-      patchStrategicMerge:
-        metadata:
-          annotations:
-            multicluster.admiralty.io/elect: ""
-            multicluster.admiralty.io/no-reservation: ""
-            multicluster.admiralty.io/use-constraints-from-spec-for-proxy-pod-scheduling: ""
-EOF
-
   for cluster in "${CLUSTERS[@]}"; do
     kubectl --context "$DC_CLUSTER_CONTEXT" apply -f - <<EOF
 apiVersion: kubeflow.org/v1

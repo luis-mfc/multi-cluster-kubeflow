@@ -7,6 +7,9 @@ In this repo, 2 local kind clusters are created to demonstrate the above scenari
 
 ![Architecture diagram](docs/arch.drawio.png).
 
+
+![Flow Chart](docs/flow.drawio.png).
+
 ---
 ## Setup
 ### Prerequisites
@@ -32,8 +35,6 @@ Main dependencies:
 - [bash](https://www.gnu.org/software/bash/): `5.1.16`
 - [kind](https://kind.sigs.k8s.io/): `kind v0.23.0 go1.21.10 linux/amd64`
 - [istio/istioctl](https://github.com/istio/istio): `1.23.2`
-- [kubeflow](https://github.com/kubeflow/manifests): `1.9.0`
-- [admiralty](https://github.com/admiraltyio/admiralty): `0.16.0`
 
 ---
 ## Sources
