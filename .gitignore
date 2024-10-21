@@ -1,0 +1,7 @@
+.vscode
+# Kubeflow manifests repo
+.kubeflow
+# Generated istio certs
+.certs
+# drawio tmp files
+*.bkp

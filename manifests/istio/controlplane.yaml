@@ -1,0 +1,61 @@
+apiVersion: install.istio.io/v1alpha1
+metadata:
+  name: istio-controlplane
+  namespace: istio-system
+kind: IstioOperator
+spec:
+  profile: demo
+  # https://github.com/kubeflow/manifests/blob/v1.9.0/common/oidc-client/oauth2-proxy/components/istio-external-auth-patches/patches/cm.enable-oauth2-proxy.yaml
+  meshConfig:
+    accessLogFile: /dev/stdout
+    defaultConfig:
+      discoveryAddress: istiod.istio-system.svc:15012
+      proxyMetadata:
+        ISTIO_META_DNS_CAPTURE: "true"
+        ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+      tracing: {}
+    enablePrometheusMerge: true
+    rootNamespace: istio-system
+    tcpKeepalive:
+      interval: 5s
+      probes: 3
+      time: 10s
+    trustDomain: cluster.local
+    extensionProviders:
+    - envoyExtAuthzHttp:
+        headersToDownstreamOnDeny:
+        - content-type
+        - set-cookie
+        headersToUpstreamOnAllow:
+        - authorization
+        - path
+        - x-auth-request-email
+        - x-auth-request-groups
+        - x-auth-request-user
+        includeRequestHeadersInCheck:
+        - authorization
+        - cookie
+        service: oauth2-proxy.oauth2-proxy.svc.cluster.local
+        port: 80
+      name: oauth2-proxy
+  components:
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: false
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+  # https://github.com/kubeflow/manifests/blob/v1.9.0/common/oidc-client/oauth2-proxy/components/istio-external-auth-patches/patches/deployment.jwt-refresh-interval.yaml
+    pilot:
+      k8s:
+        env:
+        - name: PILOT_JWT_PUB_KEY_REFRESH_INTERVAL
+          value: "1m"
+  values:
+    sidecarInjectorWebhook:
+      rewriteAppHTTPProbe: false
+    global:
+      meshID: usmesh
+      multiCluster:
+        clusterName: ${CLUSTER}
+      network: network-${CLUSTER}
