@@ -11,6 +11,11 @@ In this repo, 2 local kind clusters are created to demonstrate the above scenari
 ![Flow Chart](docs/flow.drawio.png).
 
 ---
+## Demo
+https://github.com/user-attachments/assets/50d1bbdf-1bca-4a55-b39d-87dcf238dc9b
+
+
+
 ## Setup
 ### Prerequisites
 Ensure all dependencies are available in your systemd:
