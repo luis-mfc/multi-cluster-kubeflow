@@ -3,7 +3,7 @@
 <!-- TODO: -->
 
 ## Dependencies/Versions
-- `istio`/`istioctl`: 1.22.5
+- `istio`/`istioctl`: 1.23.2
 - `kubeflow`: 1.9.0
 <!-- TODO: -->
 
