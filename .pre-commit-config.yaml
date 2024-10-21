@@ -9,3 +9,11 @@ repos:
         language: system
         pass_filenames: true
         files: ^.*\.sh$
+
+      - id: trivy
+        name: trivy
+        description: Runs trivy.
+        entry: trivy repo . --skip-dirs '.certs' --skip-dirs '.kubeflow'
+        language: system
+        pass_filenames: false
+        files: ^.*$
