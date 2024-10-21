@@ -18,19 +18,27 @@ Ensure all dependencies are available in your systemd:
 make dependencies
 ```
 
-### Install with a single command
+### Install
+#### Single command
 ```shell
 make all
 ```
 
-### Testing the final setup
+#### Step by step equivalent
 ```shell
-make test
+make up # create clusters and configure admiralty
+make istio # configure istio mesh
+make kubeflow # install, configure and expose kubeflow
 ```
 
-### My Testing configuration
+### Testing
+```shell
+make test # test istio, admiralty and kubeflow setups
+```
+
+### My configuration
 OS: Ubuntu 22.04, Arch: amd64
-Main dependencies:
+Main development machine dependencies:
 - [make](https://www.gnu.org/software/make/): `4.3`
 - [bash](https://www.gnu.org/software/bash/): `5.1.16`
 - [kind](https://kind.sigs.k8s.io/): `kind v0.23.0 go1.21.10 linux/amd64`
