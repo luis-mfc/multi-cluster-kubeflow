@@ -1,7 +1,7 @@
 # Multi-Cluster Kubeflow
 This is project is proof-of-concept for how one could go about running Kubeflow notebooks on multiple clusters. 
 
-By using [Admiralty](https://admiralty.io/) for multi-cluster scheduling, we can achieve a [cloud bursting topology](https://admiralty.io/docs/concepts/topologies/#cloud-bursting) where a primary "on-premises" cluster can be used to run the istio Control Plane, the Kubeflow Components as well provide a fixed compute resource amount, while a secondary "Cloud" cluster can be [meshed with it via Istio](https://istio.io/latest/docs/setup/install/multicluster/primary-remote/) to provide elastic compute capacity to the system.
+By using [Admiralty](https://admiralty.io/) for multi-cluster scheduling, we can achieve a [cloud bursting topology](https://admiralty.io/docs/concepts/topologies/#cloud-bursting) where a primary "Data Center" cluster can be used to run the istio Control Plane, the Kubeflow Components as well provide a fixed compute resource amount, while a secondary "Cloud" cluster can [meshed with it via Istio](https://istio.io/latest/docs/setup/install/multicluster/primary-remote/) provide elastic compute capacity to the platform.
 
 In this repo, 2 local kind clusters are created to demonstrate the above scenario:
 
@@ -37,8 +37,7 @@ make test # test istio, admiralty and kubeflow setups
 ```
 
 ### My configuration
-OS: Ubuntu 22.04, Arch: amd64
-Main development machine dependencies:
+- OS: Ubuntu 22.04, Arch: amd64
 - [make](https://www.gnu.org/software/make/): `4.3`
 - [bash](https://www.gnu.org/software/bash/): `5.1.16`
 - [kind](https://kind.sigs.k8s.io/): `kind v0.23.0 go1.21.10 linux/amd64`
